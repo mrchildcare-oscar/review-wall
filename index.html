@@ -205,7 +205,7 @@
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{loc.educator}</h1>
-              <p className="text-gray-400 mt-1">{loc.location} \u00b7 {loc.reviewCount} reviews</p>
+              <p className="text-gray-400 mt-1">{loc.location} · {loc.reviewCount} reviews</p>
             </div>
             <div className="flex items-center gap-3">
               <div className="text-4xl font-bold text-gray-900">{loc.avgRating}</div>
@@ -224,7 +224,7 @@
             <h2 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wide">Quality Snapshot</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
               {loc.topThemes.slice(0, 8).map((th) => (
-                <QualityBar key={th.name} label={`${(THEME_COLORS[th.name] || {}).emoji || "\u2022"} ${th.name}`} value={th.count} max={loc.reviewCount} color={
+                <QualityBar key={th.name} label={`${(THEME_COLORS[th.name] || {}).emoji || "•"} ${th.name}`} value={th.count} max={loc.reviewCount} color={
                   th.name === "Warmth & Family Feel" ? "bg-pink-400" :
                   th.name === "Communication" ? "bg-sky-400" :
                   th.name === "Food & Nutrition" ? "bg-green-400" :
@@ -252,7 +252,7 @@
                         <span className={`text-xs font-semibold ${tc.text || "text-gray-600"}`}>{theme}</span>
                       </div>
                       <p className="text-sm text-gray-600 leading-relaxed line-clamp-4">"{rev.t.length > 250 ? rev.t.slice(0, 250) + "..." : rev.t}"</p>
-                      <p className="text-xs text-gray-400 mt-2">\u2014 {rev.n}, {rev.d} via {rev.p}</p>
+                      <p className="text-xs text-gray-400 mt-2">— {rev.n}, {rev.d} via {rev.p}</p>
                     </div>
                   );
                 })}
@@ -278,9 +278,9 @@
                 );
               })}
             </div>
-            <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {displayedReviews.map((r, i) => (
-                <div key={i} className="break-inside-avoid">
+                <div key={i} className="">
                   <ReviewCard review={r} showThemes={true}/>
                 </div>
               ))}
