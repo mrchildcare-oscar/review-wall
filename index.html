@@ -3,74 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reviews</title>
+  <title>MR Childcare Reviews</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { margin: 0; background: #fff; }
+    body { margin: 0; background: #fafafa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     .loader { display: flex; align-items: center; justify-content: center; padding: 5rem 0; color: #9ca3af; }
     .loader svg { animation: spin 1s linear infinite; margin-right: 0.5rem; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .fade-in { animation: fadeIn 0.3s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
   <div id="root"></div>
   <script type="text/babel">
-    const { useState, useMemo, useEffect } = React;
+    const { useState, useMemo, useEffect, useCallback } = React;
 
+    /* Icons */
+    function GoogleIcon() {
+      return (<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>);
+    }
+    function YelpIcon() {
+      return (<svg width="14" height="14" viewBox="0 0 24 24" fill="#FF1A1A"><path d="M12.69 18.8l2.73 1.72c.29.18.63-.1.53-.43l-1.02-3.32a.58.58 0 01.22-.6l2.68-1.95c.27-.2.13-.63-.2-.63h-3.35a.58.58 0 01-.55-.39l-1.07-3.27c-.11-.33-.57-.33-.68 0l-1.07 3.27a.58.58 0 01-.55.39H6.99c-.33 0-.47.43-.2.63l2.68 1.95c.18.13.26.38.22.6l-1.02 3.32c-.1.33.24.61.53.43l2.73-1.72a.58.58 0 01.62 0z"/></svg>);
+    }
+    function FacebookIcon() {
+      return (<svg width="14" height="14" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12c0-6.627-5.373-12-12-12S0 5.373 0 12c0 5.99 4.388 10.954 10.125 11.854V15.47H7.078V12h3.047V9.356c0-3.007 1.792-4.668 4.533-4.668 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874V12h3.328l-.532 3.47h-2.796v8.385C19.612 22.954 24 17.99 24 12z"/></svg>);
+    }
+    const PLATFORM_ICONS = { Google: <GoogleIcon/>, Yelp: <YelpIcon/>, Facebook: <FacebookIcon/> };
     const PLATFORM_COLORS = {
       Google: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
       Yelp: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
       Facebook: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200" },
     };
 
-    function GoogleIcon() {
-      return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-        </svg>
-      );
-    }
-
-    function YelpIcon() {
-      return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="#FF1A1A">
-          <path d="M12.69 18.8l2.73 1.72c.29.18.63-.1.53-.43l-1.02-3.32a.58.58 0 01.22-.6l2.68-1.95c.27-.2.13-.63-.2-.63h-3.35a.58.58 0 01-.55-.39l-1.07-3.27c-.11-.33-.57-.33-.68 0l-1.07 3.27a.58.58 0 01-.55.39H6.99c-.33 0-.47.43-.2.63l2.68 1.95c.18.13.26.38.22.6l-1.02 3.32c-.1.33.24.61.53.43l2.73-1.72a.58.58 0 01.62 0z"/>
-        </svg>
-      );
-    }
-
-    function FacebookIcon() {
-      return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="#1877F2">
-          <path d="M24 12c0-6.627-5.373-12-12-12S0 5.373 0 12c0 5.99 4.388 10.954 10.125 11.854V15.47H7.078V12h3.047V9.356c0-3.007 1.792-4.668 4.533-4.668 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874V12h3.328l-.532 3.47h-2.796v8.385C19.612 22.954 24 17.99 24 12z"/>
-        </svg>
-      );
-    }
-
-    const PLATFORM_ICONS = { Google: <GoogleIcon/>, Yelp: <YelpIcon/>, Facebook: <FacebookIcon/> };
+    const THEME_COLORS = {
+      "Communication": { emoji: "💬", bg: "bg-sky-50", text: "text-sky-700", border: "border-sky-200" },
+      "Food & Nutrition": { emoji: "🍎", bg: "bg-green-50", text: "text-green-700", border: "border-green-200" },
+      "Safety & Cleanliness": { emoji: "🛡️", bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
+      "Outdoor Activities": { emoji: "🌳", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+      "Learning & Development": { emoji: "📚", bg: "bg-violet-50", text: "text-violet-700", border: "border-violet-200" },
+      "Bilingual/Immersion": { emoji: "🌏", bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
+      "Warmth & Family Feel": { emoji: "❤️", bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200" },
+      "Long-term Trust": { emoji: "🤝", bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
+    };
 
     function StarIcon({ filled }) {
-      return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill={filled ? "#fbbf24" : "#e5e7eb"} stroke={filled ? "#fbbf24" : "#e5e7eb"} strokeWidth="2">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-        </svg>
-      );
+      return (<svg width="14" height="14" viewBox="0 0 24 24" fill={filled ? "#fbbf24" : "#e5e7eb"} stroke={filled ? "#fbbf24" : "#e5e7eb"} strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>);
     }
-
-    function Stars({ count }) {
-      return (
-        <div style={{ display: "flex", gap: "2px" }}>
-          {[...Array(5)].map((_, i) => <StarIcon key={i} filled={i < count} />)}
-        </div>
-      );
+    function Stars({ count, size }) {
+      const s = size || 14;
+      return (<div style={{ display: "flex", gap: "2px" }}>{[...Array(5)].map((_, i) => <svg key={i} width={s} height={s} viewBox="0 0 24 24" fill={i < count ? "#fbbf24" : "#e5e7eb"} stroke={i < count ? "#fbbf24" : "#e5e7eb"} strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>)}</div>);
     }
-
+    function BackArrow() {
+      return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>;
+    }
     function ChevronDown() {
       return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>;
     }
@@ -78,14 +67,38 @@
       return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="18 15 12 9 6 15"/></svg>;
     }
 
-    function ReviewCard({ review }) {
+    /* Theme Badge */
+    function ThemeBadge({ name, count }) {
+      const tc = THEME_COLORS[name] || { emoji: "•", bg: "bg-gray-50", text: "text-gray-600", border: "border-gray-200" };
+      return (
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${tc.bg} ${tc.text} border ${tc.border}`}>
+          <span>{tc.emoji}</span> {name}{count != null && <span className="ml-0.5 opacity-60">({count})</span>}
+        </span>
+      );
+    }
+
+    /* Quality Bar */
+    function QualityBar({ label, value, max, color }) {
+      const pct = max > 0 ? Math.round((value / max) * 100) : 0;
+      return (
+        <div className="flex items-center gap-2 text-xs">
+          <span className="w-28 text-gray-500 shrink-0">{label}</span>
+          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full ${color || "bg-emerald-400"}`} style={{ width: pct + "%" }}/>
+          </div>
+          <span className="w-8 text-right text-gray-400 font-medium">{pct}%</span>
+        </div>
+      );
+    }
+
+    /* Review Card */
+    function ReviewCard({ review, showThemes }) {
       const [expanded, setExpanded] = useState(false);
       const isLong = review.t.length > 200;
       const displayText = expanded || !isLong ? review.t : review.t.slice(0, 200) + "...";
       const colors = PLATFORM_COLORS[review.p] || PLATFORM_COLORS.Google;
-
       return (
-        <div className="bg-white border border-gray-100 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col gap-3">
+        <div className="bg-white border border-gray-100 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col gap-3 fade-in">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-600 shrink-0">
@@ -97,128 +110,232 @@
               </div>
             </div>
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border} shrink-0`}>
-              {PLATFORM_ICONS[review.p]}
-              {review.p}
+              {PLATFORM_ICONS[review.p]} {review.p}
             </span>
           </div>
           <Stars count={review.r} />
           <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{displayText}</p>
           {isLong && (
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-0.5 self-start transition-colors cursor-pointer border-none bg-transparent p-0"
-            >
+            <button onClick={() => setExpanded(!expanded)} className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-0.5 self-start transition-colors cursor-pointer border-none bg-transparent p-0">
               {expanded ? <><ChevronUp/> Show less</> : <><ChevronDown/> Read more</>}
             </button>
+          )}
+          {showThemes && review.themes && review.themes.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {review.themes.map((th) => <ThemeBadge key={th} name={th}/>)}
+            </div>
           )}
         </div>
       );
     }
 
-    function ReviewWall() {
-      const [reviews, setReviews] = useState([]);
-      const [loading, setLoading] = useState(true);
-      const [error, setError] = useState(null);
-      const [activeFilter, setActiveFilter] = useState("All");
-
-      useEffect(() => {
-        fetch("kudobuzz_reviews.json")
-          .then((res) => { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
-          .then((data) => { setReviews(data); setLoading(false); })
-          .catch((err) => { setError(err.message); setLoading(false); });
-      }, []);
-
-      const platforms = useMemo(() => {
-        const unique = [...new Set(reviews.map((r) => r.p))];
-        return ["All", ...unique];
-      }, [reviews]);
-
-      const filtered = useMemo(
-        () => activeFilter === "All" ? reviews : reviews.filter((r) => r.p === activeFilter),
-        [activeFilter, reviews]
-      );
-
-      const avgRating = reviews.length
-        ? (reviews.reduce((s, r) => s + r.r, 0) / reviews.length).toFixed(1)
-        : "0.0";
-
-      const platformCounts = reviews.reduce(
-        (acc, r) => { acc[r.p] = (acc[r.p] || 0) + 1; return acc; }, {}
-      );
-
-      if (loading) {
-        return (
-          <div className="loader">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 12a9 9 0 11-6.219-8.56"/>
-            </svg>
-            Loading reviews...
-          </div>
-        );
-      }
-
-      if (error) {
-        return <div className="text-center py-20 text-red-400 text-sm">Failed to load reviews: {error}</div>;
-      }
-
+    /* Location Card (Landing Page) */
+    function LocationCard({ loc, onClick }) {
+      const topThemes = loc.topThemes.slice(0, 4);
       return (
-        <div className="max-w-6xl mx-auto px-4 py-10 font-sans">
-          {/* Summary Banner */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <div className="flex items-center gap-4">
-              <div className="text-5xl font-bold text-gray-900 tracking-tight">{avgRating}</div>
-              <div>
-                <Stars count={Math.round(parseFloat(avgRating))} />
-                <p className="text-sm text-gray-500 mt-1">
-                  Based on <span className="font-medium text-gray-700">{reviews.length}</span> verified reviews
-                </p>
-              </div>
+        <button onClick={onClick} className="text-left bg-white border border-gray-100 rounded-xl p-6 shadow-sm hover:shadow-lg hover:border-gray-200 transition-all duration-200 flex flex-col gap-4 cursor-pointer w-full fade-in">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">{loc.educator}</h3>
+              <p className="text-sm text-gray-400 mt-0.5">{loc.location}</p>
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              {Object.entries(platformCounts).map(([platform, count]) => (
-                <span key={platform} className="flex items-center gap-1">
-                  {PLATFORM_ICONS[platform]}
-                  <span>{count}</span>
-                </span>
-              ))}
+            <div className="text-right shrink-0">
+              <div className="text-2xl font-bold text-gray-900">{loc.avgRating}</div>
+              <Stars count={Math.round(loc.avgRating)} size={12}/>
             </div>
           </div>
+          <div className="flex items-center gap-3 text-sm text-gray-500">
+            <span className="font-semibold text-gray-700">{loc.reviewCount}</span> reviews
+            <span className="text-gray-200">|</span>
+            <span><span className="font-semibold text-gray-700">{loc.avgThemes}</span> quality themes avg</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {topThemes.map((th) => <ThemeBadge key={th.name} name={th.name} count={th.count}/>)}
+          </div>
+          <div className="text-xs text-gray-300 mt-1 flex items-center gap-1">
+            View details <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 6 15 12 9 18"/></svg>
+          </div>
+        </button>
+      );
+    }
 
-          {/* Filter Tabs */}
-          <div className="flex gap-1.5 mb-6 border-b border-gray-100 pb-3">
-            {platforms.map((p) => (
-              <button
-                key={p}
-                onClick={() => setActiveFilter(p)}
-                className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-150 cursor-pointer border-none ${
-                  activeFilter === p
-                    ? "bg-gray-900 text-white shadow-sm"
-                    : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                }`}
-              >
-                {p === "All" ? `All (${reviews.length})` : `${p} (${platformCounts[p] || 0})`}
-              </button>
+    /* Landing Page */
+    function LandingPage({ data, onSelectLocation }) {
+      return (
+        <div className="max-w-6xl mx-auto px-4 py-10">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">MR Childcare Reviews</h1>
+            <p className="text-gray-400 mt-2 text-sm">
+              <span className="font-semibold text-gray-600">{data.totalReviews}</span> verified reviews across <span className="font-semibold text-gray-600">{data.locations.length}</span> locations
+            </p>
+            <div className="flex items-center justify-center gap-2 mt-3">
+              <div className="text-4xl font-bold text-gray-900">{data.avgRating}</div>
+              <Stars count={Math.round(data.avgRating)} size={20}/>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {data.locations.map((loc) => (
+              <LocationCard key={loc.id} loc={loc} onClick={() => onSelectLocation(loc.id)}/>
             ))}
           </div>
-
-          {/* Review Grid */}
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
-            {filtered.map((review, i) => (
-              <div key={i} className="break-inside-avoid">
-                <ReviewCard review={review} />
-              </div>
-            ))}
-          </div>
-
-          {/* Footer */}
-          <p className="text-center text-xs text-gray-300 mt-10">
-            Reviews collected from Google, Yelp &amp; Facebook
-          </p>
+          <p className="text-center text-xs text-gray-300 mt-10">Reviews collected from Google, Yelp & Facebook</p>
         </div>
       );
     }
 
-    ReactDOM.createRoot(document.getElementById("root")).render(<ReviewWall />);
+    /* Location Detail Page */
+    function LocationDetailPage({ loc, onBack }) {
+      const [activeTheme, setActiveTheme] = useState("All");
+      const [showAllReviews, setShowAllReviews] = useState(false);
+
+      const filteredReviews = useMemo(() => {
+        if (activeTheme === "All") return loc.reviews;
+        return loc.reviews.filter((r) => r.themes && r.themes.includes(activeTheme));
+      }, [activeTheme, loc.reviews]);
+
+      const displayedReviews = showAllReviews ? filteredReviews : filteredReviews.slice(0, 6);
+      const platformCounts = loc.reviews.reduce((acc, r) => { acc[r.p] = (acc[r.p] || 0) + 1; return acc; }, {});
+
+      return (
+        <div className="max-w-6xl mx-auto px-4 py-8 fade-in">
+          <button onClick={onBack} className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 transition-colors mb-6 cursor-pointer border-none bg-transparent p-0">
+            <BackArrow/> All Locations
+          </button>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{loc.educator}</h1>
+              <p className="text-gray-400 mt-1">{loc.location} \u00b7 {loc.reviewCount} reviews</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="text-4xl font-bold text-gray-900">{loc.avgRating}</div>
+              <div>
+                <Stars count={Math.round(loc.avgRating)} size={18}/>
+                <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+                  {Object.entries(platformCounts).map(([p, c]) => (
+                    <span key={p} className="flex items-center gap-0.5">{PLATFORM_ICONS[p]} {c}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm mb-8">
+            <h2 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wide">Quality Snapshot</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+              {loc.topThemes.slice(0, 8).map((th) => (
+                <QualityBar key={th.name} label={`${(THEME_COLORS[th.name] || {}).emoji || "\u2022"} ${th.name}`} value={th.count} max={loc.reviewCount} color={
+                  th.name === "Warmth & Family Feel" ? "bg-pink-400" :
+                  th.name === "Communication" ? "bg-sky-400" :
+                  th.name === "Food & Nutrition" ? "bg-green-400" :
+                  th.name === "Learning & Development" ? "bg-violet-400" :
+                  th.name === "Long-term Trust" ? "bg-orange-400" :
+                  th.name === "Safety & Cleanliness" ? "bg-amber-400" :
+                  th.name === "Outdoor Activities" ? "bg-emerald-400" :
+                  th.name === "Bilingual/Immersion" ? "bg-rose-400" : "bg-gray-400"
+                }/>
+              ))}
+            </div>
+            <p className="text-xs text-gray-300 mt-4">Each bar shows % of reviews mentioning this quality theme</p>
+          </div>
+
+          {Object.keys(loc.highlights).length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wide">Highlight Reviews</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(loc.highlights).slice(0, 4).map(([theme, rev]) => {
+                  const tc = THEME_COLORS[theme] || {};
+                  return (
+                    <div key={theme} className={`border rounded-lg p-5 ${tc.bg || "bg-gray-50"} ${tc.border || "border-gray-200"}`}>
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <span className="text-base">{tc.emoji}</span>
+                        <span className={`text-xs font-semibold ${tc.text || "text-gray-600"}`}>{theme}</span>
+                      </div>
+                      <p className="text-sm text-gray-600 leading-relaxed line-clamp-4">"{rev.t.length > 250 ? rev.t.slice(0, 250) + "..." : rev.t}"</p>
+                      <p className="text-xs text-gray-400 mt-2">\u2014 {rev.n}, {rev.d} via {rev.p}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wide">All Reviews</h2>
+            <div className="flex flex-wrap gap-1.5 mb-5">
+              <button onClick={() => setActiveTheme("All")} className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-150 cursor-pointer border-none ${activeTheme === "All" ? "bg-gray-900 text-white shadow-sm" : "bg-gray-50 text-gray-500 hover:bg-gray-100"}`}>
+                All ({loc.reviewCount})
+              </button>
+              {loc.topThemes.map((th) => {
+                const tc = THEME_COLORS[th.name] || {};
+                return (
+                  <button key={th.name} onClick={() => setActiveTheme(th.name)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-150 cursor-pointer border-none ${
+                      activeTheme === th.name ? "bg-gray-900 text-white shadow-sm" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                    }`}>
+                    {tc.emoji} {th.name} ({th.count})
+                  </button>
+                );
+              })}
+            </div>
+            <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+              {displayedReviews.map((r, i) => (
+                <div key={i} className="break-inside-avoid">
+                  <ReviewCard review={r} showThemes={true}/>
+                </div>
+              ))}
+            </div>
+            {!showAllReviews && filteredReviews.length > 6 && (
+              <div className="text-center mt-6">
+                <button onClick={() => setShowAllReviews(true)} className="px-5 py-2 rounded-full text-sm font-medium bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
+                  Show all {filteredReviews.length} reviews
+                </button>
+              </div>
+            )}
+          </div>
+
+          <p className="text-center text-xs text-gray-300 mt-10">Reviews collected from Google, Yelp & Facebook</p>
+        </div>
+      );
+    }
+
+    /* App */
+    function App() {
+      const [data, setData] = useState(null);
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState(null);
+      const [selectedLocation, setSelectedLocation] = useState(null);
+
+      useEffect(() => {
+        fetch("review_data.json")
+          .then((res) => { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+          .then((d) => { setData(d); setLoading(false); })
+          .catch((err) => { setError(err.message); setLoading(false); });
+      }, []);
+
+      const handleSelectLocation = useCallback((id) => {
+        setSelectedLocation(id);
+        window.scrollTo(0, 0);
+      }, []);
+
+      const handleBack = useCallback(() => {
+        setSelectedLocation(null);
+        window.scrollTo(0, 0);
+      }, []);
+
+      if (loading) return <div className="loader"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>Loading reviews...</div>;
+      if (error) return <div className="text-center py-20 text-red-400 text-sm">Failed to load reviews: {error}</div>;
+
+      const currentLocation = selectedLocation ? data.locations.find((l) => l.id === selectedLocation) : null;
+
+      if (currentLocation) {
+        return <LocationDetailPage loc={currentLocation} onBack={handleBack}/>;
+      }
+
+      return <LandingPage data={data} onSelectLocation={handleSelectLocation}/>;
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
   </script>
 </body>
 </html>
